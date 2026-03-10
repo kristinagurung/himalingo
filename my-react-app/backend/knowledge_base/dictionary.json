@@ -1,0 +1,22 @@
+[
+  {"english": "Hello", "bhutia": "Tashi Delek", "lepcha": "Khamri"},
+  {"english": "How are you?", "bhutia": "Kherang kusu delekpo yinpa?", "lepcha": "Khamri aachyo?"},
+  {"english": "I am fine", "bhutia": "Nga delekpo yin", "lepcha": "Aachyo lyang"},
+  {"english": "Thank you", "bhutia": "Thu-je-che", "lepcha": "Kha-thu"},
+  {"english": "You’re welcome", "bhutia": "Kha-le shuk", "lepcha": "Kha-thu ma"},
+  {"english": "Please", "bhutia": "Thu-je", "lepcha": "Nung"},
+  {"english": "Excuse me", "bhutia": "Gong-da", "lepcha": "Aru-lyang"},
+  {"english": "Sorry", "bhutia": "Gong-da", "lepcha": "Aru"},
+  {"english": "What is your name?", "bhutia": "Kherang gi ming ga-re yin?", "lepcha": "Na a-ming kya?"},
+  {"english": "My name is...", "bhutia": "Nga gi ming ... yin", "lepcha": "Ang ming ..."},
+  {"english": "Where are you from?", "bhutia": "Kherang ga-par ney yin?", "lepcha": "Na a-lyok kya?"},
+  {"english": "I am from Sikkim", "bhutia": "Nga Sikkim ney yin", "lepcha": "Ang Sikkim lyang"},
+  {"english": "Good morning", "bhutia": "Nyima zangpo", "lepcha": "Aachyo nyom"},
+  {"english": "Good afternoon", "bhutia": "Nyi-gung zangpo", "lepcha": "Aachyo rung"},
+  {"english": "Good evening", "bhutia": "Gong-mo zangpo", "lepcha": "Aachyo mun"},
+  {"english": "Good night", "bhutia": "Tashi nyi-ma", "lepcha": "Mun aachyo"},
+  {"english": "See you later", "bhutia": "Jey-tsong", "lepcha": "Lyok thyu"},
+  {"english": "Yes", "bhutia": "O", "lepcha": "Aang"},
+  {"english": "No", "bhutia": "Min", "lepcha": "Maang"},
+  {"english": "I don’t understand", "bhutia": "Nga go-ma song", "lepcha": "Ang ma-lyok"}
+]
