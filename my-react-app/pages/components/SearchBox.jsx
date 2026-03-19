@@ -8,28 +8,44 @@ function SearchBox({ onFocus, onSubmit, mode, isLoggedIn }) {
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    if (file) setSelectedFile(file);
+    // Ensure we only set the file if it actually exists
+    if (file) {
+      setSelectedFile(file);
+    }
   };
 
   const handleSubmit = (e) => {
     if (e) e.preventDefault();
-    if (!isLoggedIn) {
-      if (typeof onFocus === "function") onFocus();
-      return;
-    }
-    if (text.trim() || selectedFile) {
-      if (typeof onSubmit === "function") {
-        onSubmit(text, selectedFile);
-        setText(""); 
-        setSelectedFile(null);
+    
+    // Don't submit if everything is empty
+    if (!text.trim() && !selectedFile) return;
+
+    let imagePreview = null;
+
+    // FIX: Use selectedFile (not imageFile) and check type carefully
+    if (selectedFile && (selectedFile instanceof File || selectedFile instanceof Blob)) {
+      try {
+        imagePreview = URL.createObjectURL(selectedFile);
+      } catch (err) {
+        console.error("Preview error:", err);
+        imagePreview = null;
       }
     }
+
+    // Pass data up to the parent (Index.jsx)
+    if (onSubmit) {
+      onSubmit(text, selectedFile, imagePreview);
+    }
+
+    // Clear the box for the next message
+    setText("");
+    setSelectedFile(null);
   };
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSubmit(e);
+      handleSubmit();
     }
   };
 
@@ -45,6 +61,7 @@ function SearchBox({ onFocus, onSubmit, mode, isLoggedIn }) {
 
   return (
     <div className="search-container">
+      {/* Visual badge for selected file */}
       {selectedFile && (
         <div className="file-preview-badge">
           <span>📎 {selectedFile.name}</span>
@@ -53,11 +70,22 @@ function SearchBox({ onFocus, onSubmit, mode, isLoggedIn }) {
       )}
 
       <div className="search-box">
-        <button className="icon-btn plus" onClick={() => isLoggedIn ? fileInputRef.current.click() : onFocus()} type="button">
+        <button 
+          className="icon-btn plus" 
+          onClick={() => isLoggedIn ? fileInputRef.current.click() : onFocus()} 
+          type="button"
+        >
           <span className="plus-icon">+</span>
         </button>
         
-        <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="image/*, .pdf, .txt" onChange={handleFileChange} />
+        {/* Hidden File Input */}
+        <input 
+          type="file" 
+          ref={fileInputRef} 
+          style={{ display: 'none' }} 
+          accept="image/*, .pdf, .txt" 
+          onChange={handleFileChange} 
+        />
 
         <input
           type="text"
@@ -70,7 +98,11 @@ function SearchBox({ onFocus, onSubmit, mode, isLoggedIn }) {
 
         <div className="action-buttons">
           {(!text.trim() && !selectedFile) ? (
-            <button className={`mic-btn ${isListening ? 'is-active' : ''}`} onClick={startSpeech} type="button">
+            <button 
+              className={`mic-btn ${isListening ? 'is-active' : ''}`} 
+              onClick={startSpeech} 
+              type="button"
+            >
                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
             </button>
           ) : (
@@ -85,10 +117,12 @@ function SearchBox({ onFocus, onSubmit, mode, isLoggedIn }) {
         .search-box { display: flex; align-items: center; background: #fff; border: 1px solid #e5e5e5; border-radius: 24px; padding: 8px 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
         input { flex: 1; border: none; outline: none; padding: 8px; font-size: 16px; }
         .icon-btn { background: none; border: none; cursor: pointer; font-size: 20px; color: #666; margin-right: 8px; }
-        .send-btn { background: #000; color: #fff; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; }
+        .send-btn { background: #000; color: #fff; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .mic-btn { background: none; border: none; color: #666; cursor: pointer; }
+        .remove-btn { border: none; background: none; cursor: pointer; font-weight: bold; color: red; }
       `}</style>
     </div>
   );
 }
+
 export default SearchBox;

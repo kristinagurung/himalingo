@@ -10,7 +10,8 @@ function Sidebar({
   onSelectItem, 
   setLoginOpen,
   onClearHistory,
-  onDeleteItem 
+  onDeleteItem,
+  onTogglePin
 }) {
 
   const handleSignOut = () => {
@@ -53,10 +54,15 @@ function Sidebar({
         </div>
 
         {isOpen && history && history.length > 0 ? (
-          [...history].reverse().map((item, index) => (
+          // Sort: pinned items first, then by date
+          [...history].sort((a, b) => {
+            if (a.pinned && !b.pinned) return -1;
+            if (!a.pinned && b.pinned) return 1;
+            return new Date(b.updatedAt) - new Date(a.updatedAt);
+          }).map((item, index) => (
             <div 
               key={index} 
-              className="history-item" 
+              className={`history-item ${item.pinned ? 'pinned' : ''}`}
               onClick={() => onSelectItem(item)}
             >
               <span className="type-icon">{item.mode === 'chat' ? '💬' : '🌐'}</span>
@@ -65,15 +71,28 @@ function Sidebar({
               </span>
               
               {isOpen && (
-                <button 
-                  className="delete-item-btn" 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDeleteItem(e, item.chatId);
-                  }}
-                >
-                  
-                </button>
+                <div className="history-actions">
+                  <button 
+                    className="pin-item-btn" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onTogglePin(e, item.chatId, item.pinned);
+                    }}
+                    title={item.pinned ? "Unpin" : "Pin to top"}
+                  >
+                    {item.pinned ? '📌' : '📍'}
+                  </button>
+                  <button 
+                    className="delete-item-btn" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDeleteItem(e, item.chatId);
+                    }}
+                    title="Delete this history"
+                  >
+                    🗑️
+                  </button>
+                </div>
               )}
             </div>
           ))
@@ -151,12 +170,14 @@ function Sidebar({
         .history-label { font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; }
         .clear-btn { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border: none; color: white; font-size: 11px; cursor: pointer; padding: 4px 10px; border-radius: 10px; }
         .history-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 12px; cursor: pointer; font-size: 14px; transition: 0.3s; margin-bottom: 6px; background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(0, 0, 0, 0.05); position: relative; }
+        .history-item.pinned { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color: white; border-color: #f59e0b; }
         .history-item:hover { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; transform: translateX(5px); }
         .history-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #4b5563; flex: 1; }
         .history-item:hover .history-text { color: white; }
-        .delete-item-btn { background: transparent; border: none; color: #9ca3af; font-size: 18px; cursor: pointer; padding: 0 5px; opacity: 0; transition: opacity 0.2s; }
-        .history-item:hover .delete-item-btn { opacity: 1; color: white; }
-        .delete-item-btn:hover { transform: scale(1.2); color: #ff4d4d !important; }
+        .history-actions { display: flex; gap: 4px; }
+        .pin-item-btn, .delete-item-btn { background: transparent; border: none; color: #9ca3af; font-size: 18px; cursor: pointer; padding: 0 5px; opacity: 0; transition: opacity 0.2s; }
+        .history-item:hover .pin-item-btn, .history-item:hover .delete-item-btn { opacity: 1; color: white; }
+        .pin-item-btn:hover, .delete-item-btn:hover { transform: scale(1.2); color: #ff4d4d !important; }
         .sidebar-bottom { padding: 16px; border-top: 1px solid rgba(0, 0, 0, 0.08); background: #f9f9f9; }
         .user-profile { display: flex; align-items: center; gap: 12px; }
         .user-avatar { width: 36px; height: 36px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; }
