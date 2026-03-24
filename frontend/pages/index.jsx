@@ -11,9 +11,9 @@ import { FaCopy, FaVolumeUp, FaCheck } from "react-icons/fa";
 
 export default function Home() {
   // Get API URL from environment variable
-  const apiUrl = process.env.REACT_APP_API_URL;
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
   if (!apiUrl) {
-    console.error("ERROR: REACT_APP_API_URL environment variable is not set");
+    console.error("ERROR: NEXT_PUBLIC_API_URL environment variable is not set");
   }
   const [mounted, setMounted] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
