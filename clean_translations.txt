@@ -1,0 +1,14 @@
+ | 
+ | 
+ | 
+ | 
+ | 
+ | 
+ | 
+ | 
+ | 
+ | 
+ | 
+ | 
+INSERT INTO `mcq` VALUES (28994,41,357,333,365,'<p>Great Grandmother</p>','<p>Ajyo</p>','<p>Gong | nyo</p>','<p>Anyo</p>','<p>Gong
+ | 

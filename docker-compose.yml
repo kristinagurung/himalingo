@@ -1,0 +1,12 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: himalingo_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: himalingo
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./mcq_course_357_dump.sql:/docker-entrypoint-initdb.d/1.sql
+      - ./query_dump.sql:/docker-entrypoint-initdb.d/2.sql
