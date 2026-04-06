@@ -5,6 +5,7 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const multer = require("multer");
 const fetch = require("node-fetch");
+const python = "python3";
 const { spawn } = require('child_process');
 
 const app = express();
@@ -44,13 +45,13 @@ const User = mongoose.models.User || mongoose.model("User", UserSchema);
 function getLocalLanguageContext(query, lang) {
   return new Promise((resolve) => {
     try {
-      const searchLang = lang.toLowerCase().trim();
+      // Standardize language name for Python script
+      const searchLang = lang.trim(); 
       const pythonScriptPath = path.join(__dirname, "search_pinecone.py");
       
-      // Determine correct python command based on OS
       const pythonCmd = process.platform === "win32" ? "python" : "python3";
       
-      console.log(`[RAG] Querying Pinecone: "${query}" (${searchLang})`);
+      console.log(`[RAG] Querying Pinecone: "${query}" for Language: ${searchLang}`);
 
       const pythonProcess = spawn(pythonCmd, [pythonScriptPath, query, searchLang]);
       
@@ -61,7 +62,7 @@ function getLocalLanguageContext(query, lang) {
         console.error(`[RAG] Python timeout - killing process`);
         pythonProcess.kill();
         resolve(null);
-      }, 8000); // 8 second limit
+      }, 8000);
       
       pythonProcess.stdout.on('data', (data) => stdout += data.toString());
       pythonProcess.stderr.on('data', (data) => stderr += data.toString());
@@ -71,10 +72,10 @@ function getLocalLanguageContext(query, lang) {
         const result = stdout.trim();
         
         if (code !== 0 || result === "NO_MATCH" || result.includes("ERROR")) {
-          console.log(`[RAG] No match or Python error: ${stderr}`);
+          console.log(`[RAG] No match found in Pinecone for ${searchLang}`);
           resolve(null);
         } else {
-          console.log(`[RAG] Success: Match found`);
+          console.log(`[RAG] Context retrieved successfully`);
           resolve(result);
         }
       });
@@ -91,11 +92,10 @@ async function askAI(question, imageFile, chatHistory = [], systemInstruction = 
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) return "__API_KEY_MISSING__";
 
-  // List of models: Pro/Paid first, then Free Fallbacks
   const models = [
     "google/gemini-2.0-flash-001", 
     "meta-llama/llama-3.3-70b-instruct:free",
-    "google/gemma-3-27b-it:free" // Reliable backup
+    "google/gemma-3-27b-it:free" 
   ];
 
   let userContent = question;
@@ -144,7 +144,6 @@ async function askAI(question, imageFile, chatHistory = [], systemInstruction = 
 
 /* ---------------------- ROUTES ---------------------- */
 
-// Auth
 app.post("/api/signup", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -164,14 +163,14 @@ app.post("/api/login", async (req, res) => {
   } catch (err) { res.status(500).json({ success: false }); }
 });
 
-// Translation with RAG logic
+// Translation Route
 app.post('/translate', upload.single("image"), async (req, res) => {
   try {
     const { text, targetLanguage } = req.body;
     let context = "";
     
-    // Check if it's a priority native language
-    const priorityLangs = ["Bhutia", "Lepcha", "Limbu", "Magar", "Rai"];
+    // Updated priority list to include Nepali
+    const priorityLangs = ["Bhutia", "Lepcha", "Limbu", "Magar", "Rai", "Nepali"];
     
     if (priorityLangs.includes(targetLanguage)) {
       context = await getLocalLanguageContext(text, targetLanguage);
@@ -179,18 +178,18 @@ app.post('/translate', upload.single("image"), async (req, res) => {
 
     let systemInstruction = `You are a translator for ${targetLanguage}.`;
     if (context) {
-      systemInstruction += `\nCRITICAL: Use ONLY this verified translation data: ${context}. Output ONLY the English transliteration (e.g. "Tashi Delek"). No native scripts.`;
+      // Use verified data from Pinecone
+      systemInstruction += `\nCRITICAL: Use ONLY this verified translation data: ${context}. Output ONLY the English transliteration (e.g. "Tashi Delek"). Do not use native scripts unless specifically asked.`;
     } else {
       systemInstruction += `\nOutput ONLY the translated text in English letters (transliteration). No quotes.`;
     }
 
     const aiResult = await askAI(text, req.file, [], systemInstruction);
     
-    if (aiResult === "__AI_SERVICE_UNAVAILABLE__" || aiResult === "__API_KEY_MISSING__") {
-      return res.json({ success: true, translated: "Translation service currently unavailable. Please try again later." });
+    if (aiResult.includes("__AI_")) {
+      return res.json({ success: true, translated: "Translation service currently unavailable." });
     }
 
-    // Sanitize output
     const finalResult = aiResult.replace(/[".!]/g, "").trim();
     res.json({ success: true, translated: finalResult });
   } catch (err) {
@@ -198,7 +197,7 @@ app.post('/translate', upload.single("image"), async (req, res) => {
   }
 });
 
-// History & Chat Management
+// Chat Route
 app.post("/chat", upload.single("image"), async (req, res) => {
   try {
     const { text, history } = req.body;
@@ -206,12 +205,13 @@ app.post("/chat", upload.single("image"), async (req, res) => {
     const result = await askAI(text || "Hello", req.file, parsedHistory, "You are Himalingo, a helpful assistant.");
     
     if (result.includes("__AI_")) {
-      return res.json({ success: true, response: "I'm having trouble connecting to my brain. Check back in a minute!" });
+      return res.json({ success: true, response: "Connection trouble. Please try again." });
     }
     res.json({ success: true, response: result });
   } catch (err) { res.status(500).json({ success: false }); }
 });
 
+// History Routes
 app.post("/history/save-session", async (req, res) => {
   try {
     const { email, chatId, firstQuery, finalResult, mode } = req.body;
@@ -264,15 +264,6 @@ app.delete("/history", async (req, res) => {
     await History.deleteMany({ userEmail: req.query.email });
     res.json({ success: true });
   } catch (err) { res.status(500).json({ success: false }); }
-});
-
-app.get("/test-ai", async (req, res) => {
-  const result = await askAI("Respond with 'READY'", null, [], "Test system.");
-  res.json({ 
-    success: !result.includes("__AI_"), 
-    status: result, 
-    apiKeySet: !!process.env.OPENROUTER_API_KEY 
-  });
 });
 
 app.listen(PORT, () => console.log(`🚀 Himalingo Server running on port ${PORT}`));
