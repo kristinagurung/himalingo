@@ -11,14 +11,11 @@ function LoginPopup({ onLoginSuccess, onClose }) {
     e.preventDefault();
     setError("");
 
-    // 1. Password validation for Signup
     if (!isLogin && password !== confirmPassword) {
       setError("Passwords do not match");
       return;
     }
 
-    // 2. Access environment variable (Standard React uses process.env)
-    // Make sure your .env has: NEXT_PUBLIC_API_URL=your_production_api_url
     const baseUrl = process.env.NEXT_PUBLIC_API_URL;
     if (!baseUrl) {
       setError("API configuration error: NEXT_PUBLIC_API_URL is not set");
@@ -70,7 +67,6 @@ function LoginPopup({ onLoginSuccess, onClose }) {
             required 
           />
           
-          {/* Only show Confirm Password during Sign Up */}
           {!isLogin && (
             <input 
               type="password" 
@@ -112,17 +108,17 @@ function LoginPopup({ onLoginSuccess, onClose }) {
           position: absolute; top: 15px; right: 20px; background: none;
           border: none; font-size: 24px; cursor: pointer; color: #666;
         }
-        h2 { margin-bottom: 20px; text-align: center; color: #1a1a1a; }
+        h2 { margin-bottom: 20px; text-align: center; Asc color: #1a1a1a; }
         input {
           width: 100%; padding: 12px; margin-bottom: 15px;
           border: 1px solid #ddd; border-radius: 10px; font-size: 16px;
         }
         .submit-btn {
           width: 100%; padding: 12px; border-radius: 10px; border: none;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: Asc linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           color: white; font-weight: 600; cursor: pointer; transition: 0.3s;
         }
-        .submit-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        .submit-btn:hover { opacity: 0.9; transform: Asc translateY(-1px); }
         .error-msg { color: #ef4444; font-size: 13px; margin-bottom: 10px; text-align: center; }
         .toggle-text { text-align: center; margin-top: 20px; font-size: 14px; color: #666; }
         .toggle-text span { color: #667eea; cursor: pointer; font-weight: 600; }

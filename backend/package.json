@@ -8,6 +8,7 @@
     "dev": "nodemon server.js"
   },
   "dependencies": {
+    "@reduxjs/toolkit": "^2.11.2",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
@@ -17,7 +18,8 @@
     "multer": "^2.1.1",
     "node-fetch": "^2.7.0",
     "openai": "^6.17.0",
-    "python3": "^0.0.1"
+    "python3": "^0.0.1",
+    "react-redux": "^9.2.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
