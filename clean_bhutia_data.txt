@@ -1,2 +1,0 @@
-mysql: [Warning] Using a password on the command line interface can be insecure.
-ERROR 1146 (42S02) at line 1: Table 'himalingo.test_notes_dump' doesn't exist

@@ -66,8 +66,17 @@ export default function Home() {
   const fetchHistory = async (emailToFetch) => {
     const email = emailToFetch || userEmail;
     if (!email || !apiUrl) return;
+
     try {
       const response = await fetch(`${apiUrl}/history?email=${email}&t=${Date.now()}`);
+      
+      // Stop here if the response isn't JSON
+      const contentType = response.headers.get("content-type");
+      if (!response.ok || !contentType?.includes("application/json")) {
+        console.error("Backend not reached. Ensure Backend is on Port 5000.");
+        return;
+      }
+
       const data = await response.json();
       if (data.success) setHistory(data.history);
     } catch (err) { console.error("History fetch failed", err); }
@@ -147,67 +156,63 @@ export default function Home() {
 
 
   // ── MAIN SUBMIT ───────────────────────────────────────────────────────────
-  const handleSearchSubmit = async (textFromInput, imageFile, selectedLangFromSuggestion) => {
+ const handleSearchSubmit = async (textFromInput, imageFile, selectedLangFromSuggestion) => {
     if (!textFromInput && !imageFile) return;
     if (!loggedIn) { setLoginOpen(true); return; }
 
-    // Language — Redux store is always up to date, no stale state problem
-    const resolvedLang = "Bhutia";
-
-    // If suggestion click brought a new language, update store
-    if (selectedLangFromSuggestion) {
-      dispatch(setTargetLanguage(selectedLangFromSuggestion));
-    }
-
-    // Mode
-    let resolvedMode = mode;
-    if (selectedLangFromSuggestion) {
-      const isTranslate = textFromInput?.toLowerCase().includes("translate") || mode === "translate";
-      resolvedMode = isTranslate ? "translate" : "chat";
-      dispatch(setMode(resolvedMode));
-    }
-
-    console.log(`[Submit] mode=${resolvedMode} lang=${resolvedLang} text="${textFromInput}"`);
+    const resolvedLang = selectedLangFromSuggestion || targetLanguage || "Bhutia";
+    const isTranslate = textFromInput?.toLowerCase().includes("translate") || mode === "translate";
+    const resolvedMode = isTranslate ? "translate" : "chat";
 
     dispatch(setIsChatting(true));
     const chatId = currentChatId || `chat_${Date.now()}`;
     if (!currentChatId) dispatch(setCurrentChatId(chatId));
 
-    let imagePreview = null;
-    if (imageFile instanceof File) {
-      try { imagePreview = URL.createObjectURL(imageFile); } catch { imagePreview = null; }
-    }
-
-    // Add user message + placeholder to Redux
-    dispatch(addMessage({ role: "user", content: textFromInput || "", imagePreview }));
+    dispatch(addMessage({ role: "user", content: textFromInput || "" }));
     dispatch(addMessage({ role: "ai", content: "Thinking...", typing: true }));
 
     try {
       const formData = new FormData();
       formData.append("text", textFromInput || "");
-    formData.append("targetLanguage", "Bhutia");
+      formData.append("targetLanguage", resolvedLang);
       formData.append("history", JSON.stringify(messages.filter(m => !m.typing)));
-      if (imageFile instanceof File) formData.append("image", imageFile);
+      if (imageFile) formData.append("image", imageFile);
 
       const endpoint = resolvedMode === "chat" ? "/chat" : "/translate";
-      const response = await fetch(`${apiUrl}${endpoint}`, { method: "POST", body: formData });
-      const data     = await response.json();
+      
+      // Ensure apiUrl is http://localhost:5000
+      const response = await fetch(`${apiUrl}${endpoint}`, { 
+        method: "POST", 
+        body: formData 
+      });
+
+      // CHECK IF JSON: This prevents the "Unexpected token <" crash
+      const contentType = response.headers.get("content-type");
+      if (!response.ok || !contentType?.includes("application/json")) {
+        const errorMsg = await response.text();
+        console.error("Server returned non-JSON:", errorMsg);
+        throw new Error("Server returned HTML (likely a 404 or crash).");
+      }
+
+      const data = await response.json();
       const aiResponse = resolvedMode === "chat" ? data.response : data.translated;
 
-      // Replace placeholder with real response
-      dispatch(updateLastMessage({ role: "ai", content: aiResponse || "Sorry, no response.", typing: false }));
+      dispatch(updateLastMessage({ 
+        role: "ai", 
+        content: aiResponse || "No response.", 
+        typing: false 
+      }));
 
       // Save to history
-      const updatedMessages = [
-        ...messages.filter(m => !m.typing),
-        { role: "user", content: textFromInput || "" },
-        { role: "ai",   content: aiResponse || "" },
-      ];
-      saveChatToHistory(updatedMessages, chatId);
+      saveChatToHistory([...messages.filter(m => !m.typing), { role: "user", content: textFromInput }, { role: "ai", content: aiResponse }], chatId);
 
     } catch (err) {
-      console.error("[Submit] error:", err.message);
-      dispatch(updateLastMessage({ role: "ai", content: "Connection error. Please try again.", typing: false }));
+      console.error("Submission error:", err);
+      dispatch(updateLastMessage({ 
+        role: "ai", 
+        content: "Server connection failed. Make sure your backend is running on port 5000.", 
+        typing: false 
+      }));
     }
   };
 

@@ -1,19 +1,21 @@
-# Himalingo Chat & Translate Restore (Bhutia-only, no dropdown)
-Current status: Features functional per code analysis.
+# Himalingo RAG Fix - Credentials Needed
 
-## Steps:
-- [x] Previous steps
-- [x] Suggestions: Translate (Bhutia) + Chat separate, titles fixed
-- [ ] Test interface
+**Error:** Missing PINECONE_API_KEY / PINECONE_INDEX_NAME in backend/.env
 
-Bhutia translation + general chat ready, old interface preserved.
+## Quick Fix:
+1. Go https://app.pinecone.io → Create **serverless index** `himalingo-dictionary` (dim=1536, cosine)
+2. Copy API Key
+3. **Edit backend/.env** (create if missing):
+   ```
+   PINECONE_API_KEY=abc123... 
+   PINECONE_INDEX_NAME=himalingo-dictionary
+   ```
+4. ```
+   cd backend && node reindex.js
+   ```
+5. ```
+   cd backend && node test-pinecone-metadata.js
+   ```
+6. Restart server `node server.js`
 
-## Test Commands:
-```bash
-# Terminal 1 - Backend
-cd /home/anita/himalingo/backend && node server.js
-
-# Terminal 2 - Frontend  
-cd /home/anita/himalingo/frontend && npm run dev
-
-# Open browser: http://localhost:3000
+**Data/reindex.js ready. Just needs keys!** 🚀

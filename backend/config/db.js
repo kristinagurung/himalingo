@@ -1,0 +1,9 @@
+// config/db.js — MongoDB connection
+// Imported once in app.js, connects automatically
+
+import mongoose from "mongoose";
+
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB connected"))
+  .catch((err) => console.error("MongoDB error:", err.message));
