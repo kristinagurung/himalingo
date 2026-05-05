@@ -10,6 +10,7 @@
     "pinecone": "node upload.mjs"
   },
   "dependencies": {
+    "18": "^0.0.0",
     "@google/generative-ai": "^0.24.1",
     "@langchain/community": "^1.1.27",
     "@langchain/core": "^1.1.39",

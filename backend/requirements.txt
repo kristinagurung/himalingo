@@ -1,6 +1,0 @@
-fastapi
-uvicorn
-openai==1.35.0
-pinecone-client==3.2.2
-python-dotenv==1.0.0
-sentence-transformers

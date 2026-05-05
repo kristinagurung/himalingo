@@ -1,1 +1,17 @@
-{}
+[
+  { "english": "Great Grandmother", "transliteration": "Gong-nyo" },
+  { "english": "Great Grand-Father", "transliteration": "Gong-jyo" },
+  { "english": "Grandfather", "transliteration": "Ajyo" },
+  { "english": "Grandmother", "transliteration": "Anyo" },
+  { "english": "Father", "transliteration": "Abhala" },
+  { "english": "Mother", "transliteration": "Amla" },
+  { "english": "Elder Sister", "transliteration": "Aie Gembo" },
+  { "english": "Elder Brother", "transliteration": "Agya Gembo" },
+  { "english": "Younger Sister", "transliteration": "Num Chungbo" },
+  { "english": "Girl's Younger Brother", "transliteration": "Phami" },
+  { "english": "Good Morning", "transliteration": "Phisam Delek" },
+  { "english": "Hello / Namaste", "transliteration": "Thopa Delek" },
+  { "english": "Welcome", "transliteration": "Jonpa Legso" },
+  { "english": "Good Evening", "transliteration": "Thopa Delek" },
+  { "english": "Good Night", "transliteration": "Phiru Delek" }
+]

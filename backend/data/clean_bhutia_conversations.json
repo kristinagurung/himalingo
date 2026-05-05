@@ -1,1 +1,14 @@
-{}
+[
+  {
+    "heading": "How",
+    "content": "<p><strong>Some Sentences using the word How?</strong></p><ol><li><p>How is the Weather Today?</p><p>Formal- Tharing ki Namshe <strong>khatem</strong> bay la</p><p>Informal- same</p></li><li><p>How are you going back home?</p><p>Formal- Lhengay Zemkha <strong>khatay </strong>chenbo nangshey la</p><p>Informal- Rang /chey khem na <strong>khatay</strong> lokshey</p></li><li><p>How to write? - <strong>Khatay</strong> Dri-se?</p></li><li><p>How to wash? - <strong>Khateb</strong> Khyu-shay?</p></li><li><p>How do I reach MG Marg from here?- Na ley MG Marg <strong>khatey</strong> Lep shey?</p></li><li><p>How do I put on the Tv? -TV di <strong>Khatey</strong> Chuk-do la? How put on</p></li></ol>"
+  },
+  {
+    "heading": "Numbers ( 1-30)",
+    "content": "<table style=\"min-width: 50px;\"><colgroup><col style=\"min-width: 25px;\"><col style=\"min-width: 25px;\"></colgroup><tbody><tr><td colspan=\"1\" rowspan=\"1\"><p>1</p></td><td colspan=\"1\" rowspan=\"1\"><p>Chi</p></td></tr><tr><td colspan=\"1\" rowspan=\"1\"><p>2</p></td><td colspan=\"1\" rowspan=\"1\"><p>Nee</p></td></tr><!-- ... abbreviated for brevity, full table in original --></tbody></table><p>200- Gya Nee/ Ningya</p><p>300- Shum Gya</p><!-- etc. -->"
+  },
+  {
+    "heading": "Everyday Commonly Used Conversations",
+    "content": "The following conversation is between Sonam and Kelsang who run into each other. Since Kelsang is elder to Sonam the conversation is in the Formal/ Respectful Version.<p>Sonam- How are you? Lenghay Kuzu Dethang Yeka la?</p><p>Kelsang- Yes, I am Fine. Thank You. Lai la. Lhem ra Yeh?</p><!-- full conversation preserved -->"
+  }
+]

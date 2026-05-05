@@ -52,17 +52,21 @@ function Sidebar({
         </div>
 
         {isOpen && history && history.length > 0 ? (
+          /* --- THE MOVE TO TOP LOGIC --- */
           [...history].sort((a, b) => {
+            // 1. Pinned items always stay at the very top
             if (a.pinned && !b.pinned) return -1;
             if (!a.pinned && b.pinned) return 1;
+            
+            // 2. Otherwise, sort by latest interaction (updatedAt)
             return new Date(b.updatedAt) - new Date(a.updatedAt);
           }).map((item, index) => (
             <div 
-              key={index} 
+              key={item.chatId || index} 
               className={`history-item ${item.pinned ? 'pinned' : ''}`}
               onClick={() => onSelectItem(item)}
             >
-              <span className="type-icon">{item.mode === 'chat' ? '💬' : '🌐'}</span>
+              {/* NO ICONS: Item type icons removed as requested */}
               <span className="history-text" title={item.firstQuery || item.originalText}>
                 {item.firstQuery || item.originalText}
               </span>
@@ -77,7 +81,7 @@ function Sidebar({
                     }}
                     title={item.pinned ? "Unpin" : "Pin to top"}
                   >
-                    {item.pinned ? '📌' : '📍'}
+                    {item.pinned ? '' : ''}
                   </button>
                   <button 
                     className="delete-item-btn" 
@@ -113,9 +117,7 @@ function Sidebar({
       )}
 
       <style jsx>{`
-        .hidden-element {
-          display: none !important;
-        }
+        .hidden-element { display: none !important; }
         .sidebar { height: 100vh; border-right: 1px solid rgba(0, 0, 0, 0.08); display: flex; flex-direction: column; position: fixed; left: 0; top: 0; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 100; overflow: hidden; box-shadow: 0 0 25px rgba(0, 0, 0, 0.05); background-color:#F9FAFB; }
         .sidebar.open { width: 260px; }
         .sidebar.closed { width: 72px; }

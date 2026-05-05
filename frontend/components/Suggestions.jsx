@@ -1,177 +1,88 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { MdTranslate } from "react-icons/md";
-import { FaComments } from "react-icons/fa";
 
-function Suggestions({ onSelect, setMode, currentMode, isChatting, onLanguageChange }) {
-  const selectedLang = "Bhutia བཻ་ཏི་ཨ་";
-  
-  
+const EXAMPLES = [
+  "Hello",
+  "How are you?",
+  "Thank you",
+  "Good morning",
+  "What is your name?",
+  "I am fine",
+];
 
-  const suggestions = [
-    {
-      title: "Translate to Bhutia",
-      desc: `English to Bhutia བཻ་ཏི་ཨ་`,
-      icon: <MdTranslate />,
-      mode: "translate",
-      getPrompt: () => `Translate 'Hello, how are you?' to Bhutia`,
-      defaultActive: true
-    },
-    {
-      title: "Chat",
-      desc: "Ask anything",
-      icon: <FaComments />,
-      mode: "chat",
-      prompt: "Hello!"
-    }
-  ];
-
+function Suggestions({ onSelect, setMode, isChatting }) {
   if (isChatting) return null;
 
+  const handleChip = (text) => {
+    setMode("translate");
+    onSelect(` '${text}'` , null, "");
+  };
+
   return (
-    <div className="suggestions-grid">
-      {suggestions.map((item, index) => (
-        <div 
-          key={index} 
-          className={`suggestion-card ${currentMode === item.mode || (item.defaultActive && !currentMode) ? 'active' : ''}`}
-          onClick={() => {
-            setMode(item.mode);
-            if (item.mode === 'translate') {
-              const promptText = item.getPrompt();
-              onSelect(promptText, null, selectedLang);
-            } else if (item.mode === 'chat') {
-              onSelect("", null, null);
-            }
-          }}
-        >
-          <div className="s-icon">{item.icon}</div>
-          <div className="s-content">
-            <div className="s-title">
-              {item.title}
-            </div>
-            <p className="s-desc">{item.desc}</p>
-          </div>
-        </div>
-      ))}
+    <div className="suggestions-wrap">
+
+      {/* Language badge */}
+      <p className="chips-label">Try these examples</p>
+
+      {/* Example chips */}
+      <div className="chips-grid">
+        {EXAMPLES.map((ex) => (
+          <button key={ex} className="chip" onClick={() => handleChip(ex)}>
+            {ex}
+          </button>
+        ))}
+      </div>
+
       <style jsx>{`
-        .suggestions-grid { 
-          display: flex; 
-          justify-content: center; 
-          gap: 16px; 
-          margin-top: 24px; 
-          width: 100%; 
+        .suggestions-wrap {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          margin-top: 20px;
+          width: 100%;
+        }
+
+        .chips-label {
+          font-size: 13px;
+          color: #9ca3af;
+          margin-bottom: 12px;
+        }
+
+        .chips-grid {
+          display: flex;
           flex-wrap: wrap;
-        }
-        
-        .suggestion-card { 
-          background: #fff; 
-          box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
-          padding: 10px; 
-          border-radius: 20px; 
-          cursor: pointer; 
-          display: flex; 
-          align-items: center; 
-          gap: 16px; 
-          min-width: 250px; 
-          flex: 1;
-          max-width: 20px;
-          border: 3px solid transparent; 
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          position: relative;
-          overflow: hidden;
-        }
-        
-        .suggestion-card:nth-child(1) {
-          order: -1;
-        }
-        
-        .suggestion-card:hover { 
-          transform: translateY(-6px) scale(1.02); 
-          box-shadow: 0 12px 40px rgba(102, 126, 234, 0.25); 
-          border-color: #667eea; 
-        }
-        
-        .suggestion-card:active {
-          transform: scale(0.98);
-        }
-        
-        .suggestion-card.active { 
-          border-color: #667eea; 
-          box-shadow: 0 12px 40px rgba(102, 126, 234, 0.3); 
-        }
-        
-        .s-icon {
-          width: 40px;
-          height: 42px;
-          background: linear-gradient(135deg, #667eea, #764ba2);
-          border-radius: 16px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: white;
-          font-size: 15px;
-          flex-shrink: 0;
-        }
-        
-        .s-content {
-          flex: 1;
-        }
-        
-        .s-title {
-          font-size: 18px;
-          font-weight: 600;
-          color: #1f2937;
-          margin-bottom: 4px;
-        }
-        
-        .lang-header {
-          display: flex;
-          align-items: center;
           gap: 8px;
-          font-size: 16px;
-          font-weight: 600;
-          color: #1f2937;
+          justify-content: center;
+          max-width: 600px;
         }
-        
-        .lang-header span {
-          white-space: nowrap;
-        }
-        
-        .lang-select {
-          background: #f8fafc;
-          border: 2px solid #e2e8f0;
-          border-radius: 12px;
-          padding: 6px 12px;
-          font-size: 14px;
-          color: #1f2937;
+
+        .chip {
+          padding: 8px 20px;
+          border-radius: 20px;
+          border: 1px solid #e5e7eb;
+          background: #ffffff;
+          font-size: 13px;
+          color: #374151;
           cursor: pointer;
-          min-width: 100px;
           transition: all 0.2s ease;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.06);
         }
-        
-        .lang-select:hover,
-        .lang-select:focus {
-          background: white;
+
+        .chip:hover {
           border-color: #667eea;
-          outline: none;
-          box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+          color: #667eea;
+          background: #f5f3ff;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(102,126,234,0.15);
         }
-        
-        .s-desc { 
-          font-size: 13px; 
-          color: #6b7280; 
-          margin: 0; 
-          line-height: 1.4;
+
+        .chip:active {
+          transform: scale(0.97);
         }
 
         @media (max-width: 768px) {
-          .suggestions-grid {
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-          }
-          .suggestion-card { 
-            width: 90%; 
-            max-width: none;
+          .chips-grid {
+            padding: 0 12px;
           }
         }
       `}</style>

@@ -1,54 +1,56 @@
-// config/pinecone.js — Pinecone + vectorStore setup
-// vectorStore is initialized ONCE when server starts
-// All services import vectorStore from here
+// config/pinecone.js — Pinecone setup
+import { Pinecone } from "@pinecone-database/pinecone";
 
-import { Pinecone as PineconeClient } from "@pinecone-database/pinecone";
-import { PineconeStore }              from "@langchain/pinecone";
-import { OpenAIEmbeddings }           from "@langchain/openai";
+// 1. Initialize Pinecone
+export const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
+export const index = pc.Index("translation"); 
 
-// Embeddings — uses your direct OpenAI key
-export const embeddings = new OpenAIEmbeddings({
-  apiKey:     process.env.GPT5_NANO_API_KEY,
-  modelName:  "text-embedding-3-small",
-  dimensions: 1024,
-});
-
-// Pinecone client with validation
-let pineconeIndex = null;
-if (!process.env.PINECONE_API_KEY || !process.env.PINECONE_INDEX_NAME) {
-  console.error("🚫 RAG DISABLED: Missing PINECONE_API_KEY or PINECONE_INDEX_NAME in .env");
-  console.error("   Create free: https://app.pinecone.io , dim=384 serverless");
-} else {
+// ── Embed a query for searching ───────────────────────────────────────────
+export async function embedQuery(text) {
   try {
-    const pinecone = new PineconeClient({ apiKey: process.env.PINECONE_API_KEY });
-    pineconeIndex = pinecone.Index(process.env.PINECONE_INDEX_NAME);
-    console.log("✅ Pinecone client ready");
-  } catch (err) {
-    console.error("🚫 Pinecone client failed:", err.message);
-  }
-}
+    const response = await pc.inference.embed(
+      "llama-text-embed-v2",
+      [text],
+      { inputType: "query", truncate: "END" }
+    );
 
-// vectorStore — initialized once, reused for every search
-// This is the main speed optimization — no reconnecting on every request
-let vectorStore = null;
-
-export async function getVectorStore() {
-  if (!vectorStore) {
-    try {
-      if (pineconeIndex) {
-        vectorStore = await PineconeStore.fromExistingIndex(embeddings, {
-          pineconeIndex,
-        });
-        console.log("✅ Pinecone vector store ready");
-      } else {
-        console.log("⏭️ Skipping Pinecone init (RAG disabled)");
-      }
-    } catch (err) {
-      console.error("🚫 Pinecone store failed:", err.message);
+    console.log("response:", response.data);
+    
+    
+    // Check if data exists to prevent crashes
+    if (!response.data || response.data.length === 0) {
+      throw new Error("Embedding failed: No data returned from Pinecone Inference.");
     }
+    
+    return response.data[0].values;
+  } catch (err) {
+    console.error("[Pinecone] Embedding error:", err.message);
+    throw err; // Re-throw so the service knows it failed
   }
-  return vectorStore;
 }
 
-// Initialize immediately when server starts
-getVectorStore();
+// ── Search Pinecone with language filter ──────────────────────────────────
+export async function searchPinecone(query, language, topK = 5) {
+  try {
+    // Ensure the language name is normalized to match your metadata (e.g., "Bhutia")
+    // This is safer than doing it only in the service.
+    const normalizedLang = language.charAt(0).toUpperCase() + language.slice(1).toLowerCase();
+    
+    const vector = await embedQuery(query);
+
+    const results = await index.query({
+      vector,
+      topK,
+      includeMetadata: true,
+      // FIX: Metadata filtering is case-sensitive! 
+      // This matches your dashboard's "language": "Bhutia"
+      filter: { language: { $eq: normalizedLang } },
+    });
+
+    return results.matches || [];
+  } catch (err) {
+    // Detailed error logging
+    console.error(`[Pinecone] Search error for ${language}:`, err.message);
+    return [];
+  }
+}

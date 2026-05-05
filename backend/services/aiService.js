@@ -1,12 +1,13 @@
 // services/aiService.js — calls OpenAI for translation and chat
 // Uses GPT5_NANO_API_KEY directly (no OpenRouter)
-// Tries gpt-4o-mini first, falls back to gpt-3.5-turbo
+// Fixed: removed optional chaining (?.) for older Node.js compatibility
 
 import fetch from "node-fetch";
 
 const MODELS = [
-  "gpt-4o-mini",   // fast, cheap, reliable
-  "gpt-3.5-turbo", // fallback
+  "gpt-4",           // better for low-resource languages
+  "gpt-4o-mini",     // fast, cheap, reliable
+  "gpt-3.5-turbo",   // fallback
 ];
 
 export async function askAI(messages, temperature = 0.05) {
@@ -45,20 +46,26 @@ export async function askAI(messages, temperature = 0.05) {
         const errText = await response.text();
         console.error(`[AI] ${modelId} HTTP ${response.status}:`, errText);
         const waitTime = response.status === 429 ? 2000 : 500;
-        await new Promise(r => setTimeout(r, waitTime));
+        await new Promise(function(r) { return setTimeout(r, waitTime); });
         continue;
       }
 
       const data = await response.json();
 
-      if (data.choices?.[0]?.message?.content) {
+      // Fixed: no optional chaining — works on all Node.js versions
+      if (
+        data.choices &&
+        data.choices[0] &&
+        data.choices[0].message &&
+        data.choices[0].message.content
+      ) {
         console.log(`[AI] Success with ${modelId}`);
         return data.choices[0].message.content.trim();
       }
 
       if (data.error) {
-        console.error(`[AI] ${modelId} error:`, data.error.message);
-        await new Promise(r => setTimeout(r, 500));
+        console.error(`[AI] ${modelId} error:`, data.error && data.error.message);
+        await new Promise(function(r) { return setTimeout(r, 500); });
       }
 
     } catch (e) {
@@ -68,7 +75,7 @@ export async function askAI(messages, temperature = 0.05) {
       } else {
         console.error(`[AI] ${modelId} failed:`, e.message);
       }
-      await new Promise(r => setTimeout(r, 500));
+      await new Promise(function(r) { return setTimeout(r, 500); });
     }
   }
 

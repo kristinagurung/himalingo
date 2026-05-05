@@ -1,1 +1,143 @@
-{}
+{
+  "how_sentences": [
+    {
+      "english": "How is the weather today?",
+      "transliteration": "Tharing ki Namshe khatem bay la"
+    },
+    {
+      "english": "How are you going back home?",
+      "transliteration": "Lhengay Zemkha khatay chenbo nangshey la"
+    },
+    {
+      "english": "How to write?",
+      "transliteration": "Khatay Dri-se"
+    },
+    {
+      "english": "How to wash?",
+      "transliteration": "Khateb Khyu-shay"
+    },
+    {
+      "english": "How do I reach MG Marg from here?",
+      "transliteration": "Na ley MG Marg khatey Lep shey"
+    },
+    {
+      "english": "How do I turn on the TV?",
+      "transliteration": "TV di Khatey Chuk-do la"
+    }
+  ],
+
+  "numbers": [
+    { "english": "1", "transliteration": "Chi" },
+    { "english": "2", "transliteration": "Nee" },
+    { "english": "3", "transliteration": "Shum" },
+    { "english": "4", "transliteration": "Jhi" },
+    { "english": "5", "transliteration": "Nga" },
+    { "english": "6", "transliteration": "Thuk" },
+    { "english": "7", "transliteration": "Din" },
+    { "english": "8", "transliteration": "Gay" },
+    { "english": "9", "transliteration": "Ghu" },
+  
+  ],
+
+  "common_greetings": [
+    { "english": "Hello", "transliteration": "Kuzu Zangpo" },
+    { "english": "Welcome", "transliteration": "Jonpa Legso" },
+    { "english": "Good Morning", "transliteration": "Thopa Delek" },
+    { "english": "Good Afternoon", "transliteration": "Nyima Delek" },
+    { "english": "Good Evening", "transliteration": "Phisam Delek" },
+    { "english": "Good Night", "transliteration": "Phiru Delek" },
+    { "english": "Thank You", "transliteration": "Thuchi-chi" }
+  ],
+
+  "days": [
+    { "english": "Sunday", "transliteration": "Za Nyim" },
+    { "english": "Monday", "transliteration": "Za Daw" },
+    { "english": "Tuesday", "transliteration": "Za Mingma" },
+    { "english": "Wednesday", "transliteration": "Za Lhako" },
+    { "english": "Thursday", "transliteration": "Za Phurpo" },
+    { "english": "Friday", "transliteration": "Za Paso" },
+    { "english": "Saturday", "transliteration": "Za Pempo" }
+  ],
+
+  "months": [
+    { "english": "January", "transliteration": "Chu Dawo" },
+    { "english": "February", "transliteration": "Wo Dawo" },
+    { "english": "March", "transliteration": "Nag Dawo" },
+    { "english": "April", "transliteration": "Saga Dawa" }
+  ],
+
+  "pronouns": [
+    { "english": "I", "transliteration": "Nga" },
+    { "english": "you (informal)", "transliteration": "Che" },
+    { "english": "you (formal)", "transliteration": "Lhengay" },
+    { "english": "mine", "transliteration": "Nge Ki" },
+    { "english": "ours", "transliteration": "Nga chi ki" },
+    { "english": "his", "transliteration": "Khu ki" },
+    { "english": "her", "transliteration": "Mu" }
+  ],
+
+  "question_types": {
+    "what": [
+      {
+        "english": "What are you doing?",
+        "transliteration": "Lhengay khan nangdo la"
+      }
+    ],
+    "where": [
+      {
+        "english": "Where do you live?",
+        "transliteration": "Lhengay Khana Zhupo nangdo la"
+      }
+    ],
+    "when": [
+      {
+        "english": "When will you go home?",
+        "transliteration": "Lhengay Zemko Nam chembo nangshey la"
+      }
+    ],
+    "why": [
+      {
+        "english": "Why are you late?",
+        "transliteration": "Lhengay kha nangdi pheepo nangbo la"
+      }
+    ]
+  },
+
+  "tenses": [
+    { "english": "past", "transliteration": "che / chen" },
+    { "english": "present", "transliteration": "doh" },
+    { "english": "future", "transliteration": "shey" }
+  ],
+
+  "weather": [
+    { "english": "Rain", "transliteration": "Char-po" },
+    { "english": "Snow", "transliteration": "Kha-wo" },
+    { "english": "Wind", "transliteration": "Lhung" },
+    {
+      "english": "Yesterday it rained heavily",
+      "transliteration": "Dha Chapo Shukchen Kyabo Bey"
+    }
+  ],
+
+  "food_sentences": [
+    {
+      "english": "Would you like Sugar or Salt Tea? (formal)",
+      "transliteration": "Lhengay Suyo-ja di Ngam Jyepo Nangshey bo la"
+    },
+    {
+      "english": "Drink water after food (formal)",
+      "transliteration": "Shay-lah Jye Myosa nye Chyap Jepona las"
+    },
+    {
+      "english": "Would you like Sugar or Salt Tea? (informal)",
+      "transliteration": "Ja di chajya jeshey bo ngajya jeshey bo"
+    }
+  ],
+
+  "activities": [
+    { "english": "Sit", "transliteration": "Jhu-po" },
+    { "english": "Stand", "transliteration": "Long-po" },
+    { "english": "Run", "transliteration": "Gyuk-o" },
+    { "english": "Cook Rice", "transliteration": "Taw chaw-shey" }
+  ]
+}

@@ -1,25 +1,32 @@
-// app.js — sets up express, middleware, and all routes
+// app.js — Express app setup
 import express from "express";
 import cors    from "cors";
-import multer  from "multer";
 
-import "./config/db.js";          // connects MongoDB on import
-import "./config/pinecone.js";    // connects Pinecone on import
+import "./config/db.js";
+import "./config/pinecone.js";
 
 import authRoutes      from "./routes/auth.js";
 import translateRoutes from "./routes/translate.js";
 import chatRoutes      from "./routes/chat.js";
 import historyRoutes   from "./routes/history.js";
+import adminRoutes     from "./routes/admin.js";
 
 const app = express();
 
-app.use(cors());
+// ── CORS fix — allow frontend on port 3000 ────────────────────────────────
+app.use(cors({
+  origin: ["http://localhost:3000", "http://localhost:3001"],
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+}));
+
 app.use(express.json());
 
-// Routes
-app.use("/api",       authRoutes);      // /api/signup, /api/login
-app.use("/",          translateRoutes); // /translate
-app.use("/",          chatRoutes);      // /chat
-app.use("/history",   historyRoutes);   // /history/*
+// ── Routes ────────────────────────────────────────────────────────────────
+app.use("/admin",   adminRoutes);
+app.use("/api",     authRoutes);
+app.use("/history", historyRoutes);
+app.use("/",        translateRoutes);
+app.use("/",        chatRoutes);
 
 export default app;

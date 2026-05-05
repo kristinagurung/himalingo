@@ -25,27 +25,24 @@ import { useState } from "react";
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 export default function Home() {
-  const dispatch  = useDispatch();
+  const dispatch = useDispatch();
 
-  // ── Read everything from Redux store ──────────────────────────────────────
-  const targetLanguage  = useSelector(s => s.app.targetLanguage);
-  const mode            = useSelector(s => s.app.mode);
-  const messages        = useSelector(s => s.app.messages);
-  const isChatting      = useSelector(s => s.app.isChatting);
-  const currentChatId   = useSelector(s => s.app.currentChatId);
-  const loggedIn        = useSelector(s => s.app.loggedIn);
-  const userEmail       = useSelector(s => s.app.userEmail);
+  const targetLanguage = useSelector(s => s.app.targetLanguage);
+  const mode           = useSelector(s => s.app.mode);
+  const messages       = useSelector(s => s.app.messages);
+  const isChatting     = useSelector(s => s.app.isChatting);
+  const currentChatId  = useSelector(s => s.app.currentChatId);
+  const loggedIn       = useSelector(s => s.app.loggedIn);
+  const userEmail      = useSelector(s => s.app.userEmail);
 
-  // ── Local UI state (not needed in Redux) ──────────────────────────────────
-  const [mounted, setMounted]       = useState(false);
+  const [mounted, setMounted]         = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [loginOpen, setLoginOpen]   = useState(false);
-  const [history, setHistory]       = useState([]);
-  const [copiedText, setCopiedText] = useState(null);
+  const [loginOpen, setLoginOpen]     = useState(false);
+  const [history, setHistory]         = useState([]);
+  const [copiedText, setCopiedText]   = useState(null);
 
   const scrollRef = useRef(null);
 
-  // ── On mount: check localStorage for saved login ──────────────────────────
   useEffect(() => {
     setMounted(true);
     const token = localStorage.getItem("token");
@@ -62,21 +59,13 @@ export default function Home() {
     }
   }, [messages]);
 
-  // ── History ───────────────────────────────────────────────────────────────
   const fetchHistory = async (emailToFetch) => {
     const email = emailToFetch || userEmail;
     if (!email || !apiUrl) return;
-
     try {
       const response = await fetch(`${apiUrl}/history?email=${email}&t=${Date.now()}`);
-      
-      // Stop here if the response isn't JSON
       const contentType = response.headers.get("content-type");
-      if (!response.ok || !contentType?.includes("application/json")) {
-        console.error("Backend not reached. Ensure Backend is on Port 5000.");
-        return;
-      }
-
+      if (!response.ok || !contentType?.includes("application/json")) return;
       const data = await response.json();
       if (data.success) setHistory(data.history);
     } catch (err) { console.error("History fetch failed", err); }
@@ -91,10 +80,7 @@ export default function Home() {
       await fetch(`${apiUrl}/history/save-session`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chatId: id, email: userEmail, firstQuery: title,
-          finalResult: JSON.stringify(currentMessages), mode,
-        }),
+        body: JSON.stringify({ chatId: id, email: userEmail, firstQuery: title, finalResult: JSON.stringify(currentMessages), mode }),
       });
       fetchHistory(userEmail);
     } catch (err) { console.error("Save failed", err); }
@@ -105,10 +91,7 @@ export default function Home() {
     try {
       const res = await fetch(`${apiUrl}/history/session/${chatId}?email=${userEmail}`, { method: "DELETE" });
       const data = await res.json();
-      if (data.success) {
-        if (currentChatId === chatId) handleNewChat();
-        fetchHistory(userEmail);
-      }
+      if (data.success) { if (currentChatId === chatId) handleNewChat(); fetchHistory(userEmail); }
     } catch (err) { console.error("Delete failed", err); }
   };
 
@@ -149,19 +132,14 @@ export default function Home() {
     });
   };
 
-  const handleNewChat = () => {
-    dispatch(resetChat());
-  };
+  const handleNewChat = () => { dispatch(resetChat()); };
 
-
-
-  // ── MAIN SUBMIT ───────────────────────────────────────────────────────────
- const handleSearchSubmit = async (textFromInput, imageFile, selectedLangFromSuggestion) => {
+  const handleSearchSubmit = async (textFromInput, imageFile, selectedLangFromSuggestion) => {
     if (!textFromInput && !imageFile) return;
     if (!loggedIn) { setLoginOpen(true); return; }
 
     const resolvedLang = selectedLangFromSuggestion || targetLanguage || "Bhutia";
-    const isTranslate = textFromInput?.toLowerCase().includes("translate") || mode === "translate";
+    const isTranslate  = textFromInput?.toLowerCase().includes("translate") || mode === "translate";
     const resolvedMode = isTranslate ? "translate" : "chat";
 
     dispatch(setIsChatting(true));
@@ -174,45 +152,28 @@ export default function Home() {
     try {
       const formData = new FormData();
       formData.append("text", textFromInput || "");
-      formData.append("targetLanguage", resolvedLang);
+      formData.append("targetLanguage", "Bhutia");
+      formData.append("mode", resolvedMode);
       formData.append("history", JSON.stringify(messages.filter(m => !m.typing)));
       if (imageFile) formData.append("image", imageFile);
 
       const endpoint = resolvedMode === "chat" ? "/chat" : "/translate";
-      
-      // Ensure apiUrl is http://localhost:5000
-      const response = await fetch(`${apiUrl}${endpoint}`, { 
-        method: "POST", 
-        body: formData 
-      });
+      const response = await fetch(`${apiUrl}${endpoint}`, { method: "POST", body: formData });
 
-      // CHECK IF JSON: This prevents the "Unexpected token <" crash
       const contentType = response.headers.get("content-type");
       if (!response.ok || !contentType?.includes("application/json")) {
-        const errorMsg = await response.text();
-        console.error("Server returned non-JSON:", errorMsg);
-        throw new Error("Server returned HTML (likely a 404 or crash).");
+        throw new Error("Server returned non-JSON response.");
       }
 
       const data = await response.json();
       const aiResponse = resolvedMode === "chat" ? data.response : data.translated;
 
-      dispatch(updateLastMessage({ 
-        role: "ai", 
-        content: aiResponse || "No response.", 
-        typing: false 
-      }));
-
-      // Save to history
+      dispatch(updateLastMessage({ role: "ai", content: aiResponse || "No response.", typing: false }));
       saveChatToHistory([...messages.filter(m => !m.typing), { role: "user", content: textFromInput }, { role: "ai", content: aiResponse }], chatId);
 
     } catch (err) {
       console.error("Submission error:", err);
-      dispatch(updateLastMessage({ 
-        role: "ai", 
-        content: "Server connection failed. Make sure your backend is running on port 5000.", 
-        typing: false 
-      }));
+      dispatch(updateLastMessage({ role: "ai", content: "Server connection failed. Make sure your backend is running on port 5000.", typing: false }));
     }
   };
 
@@ -246,11 +207,26 @@ export default function Home() {
 
       <main className="main">
         <div className={isChatting ? "chat-viewport" : "landing-view"} ref={scrollRef}>
+
+          {/* ── LANDING PAGE ── */}
           {!isChatting ? (
             <div className="landing-content">
+
+              {/* Logo + subtitle */}
               <h1 className="logo">Himalingo</h1>
+              <p className="subtitle">English to Bhutia translation</p>
+
+              {/* Search bar */}
               <div className="landing-input-wrapper">
-                <SearchBox isLoggedIn={loggedIn} onSubmit={handleSearchSubmit} mode={mode} effectiveMode={mode} onFocus={() => setLoginOpen(true)} />
+                <SearchBox
+                  isLoggedIn={loggedIn}
+                  onSubmit={handleSearchSubmit}
+                  mode={mode}
+                  effectiveMode={mode}
+                  onFocus={() => !loggedIn && setLoginOpen(true)}
+                />
+
+                {/* Chips only — no inline result */}
                 <Suggestions
                   onSelect={handleSearchSubmit}
                   setMode={(m) => dispatch(setMode(m))}
@@ -259,6 +235,8 @@ export default function Home() {
                 />
               </div>
             </div>
+
+          /* ── CHAT VIEW ── */
           ) : (
             <div className="chat-content">
               {messages.map((msg, index) => (
@@ -267,7 +245,7 @@ export default function Home() {
                   <div className={msg.role === "user" ? "u-bubble" : "a-bubble"}>
                     {msg.imagePreview && <img src={msg.imagePreview} alt="upload" className="msg-img" />}
                     {msg.typing
-                      ? <div className="dots"><span></span><span></span><span></span></div>
+                      ? <div className="dots"><span/><span/><span/></div>
                       : <ReactMarkdown>{msg.content}</ReactMarkdown>}
                     {msg.role === "ai" && !msg.typing && (
                       <div className="action-buttons">
@@ -284,10 +262,17 @@ export default function Home() {
           )}
         </div>
 
+        {/* Fixed input bar while chatting */}
         {isChatting && (
           <div className="input-area-fixed">
             <div className="search-wrapper">
-              <SearchBox isLoggedIn={loggedIn} onSubmit={handleSearchSubmit} mode={mode} effectiveMode={mode} onFocus={() => setLoginOpen(true)} />
+              <SearchBox
+                isLoggedIn={loggedIn}
+                onSubmit={handleSearchSubmit}
+                mode={mode}
+                effectiveMode={mode}
+                onFocus={() => !loggedIn && setLoginOpen(true)}
+              />
               <p className="disclaimer">Himalingo may provide inaccurate info.</p>
             </div>
           </div>
@@ -306,32 +291,153 @@ export default function Home() {
       </main>
 
       <style jsx>{`
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Lepcha&family=Tibetan+Machine+Uni&family=Noto+Sans+Limbu&display=swap');
-        .container { display: flex; height: 100vh; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); }
-        .main { flex: 1; display: flex; flex-direction: column; margin-left: ${sidebarOpen ? "260px" : "72px"}; transition: 0.3s ease; position: relative; overflow: hidden; }
-        .landing-view { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; }
-        .chat-viewport { flex: 1; overflow-y: auto; display: flex; flex-direction: column; align-items: center; padding-top: 20px; }
-        .landing-content { display: flex; flex-direction: column; align-items: center; width: 100%; }
-        .landing-input-wrapper { width: 100%; max-width: 700px; padding: 0 20px; }
-        .chat-content { width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 24px; padding: 40px 20px 180px 20px; }
+        /* ── Layout ── */
+        .container {
+          display: flex;
+          height: 100vh;
+          background: #f8f7f4;  /* warm off-white from screenshot */
+        }
+        .main {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          margin-left: ${sidebarOpen ? "260px" : "72px"};
+          transition: margin-left 0.3s ease;
+          position: relative;
+          overflow: hidden;
+          background: #f8f7f4;
+        }
+
+        /* ── Landing ── */
+        .landing-view {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          width: 100%;
+        }
+        .landing-content {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          width: 100%;
+        }
+        .logo {
+          font-size: 3.8rem;
+          font-weight: 700;
+          color: #1a1a1a;
+          margin-bottom: 8px;
+          letter-spacing: -1px;
+        }
+        .subtitle {
+          font-size: 15px;
+          color: #6b7280;
+          margin-bottom: 28px;
+          font-weight: 400;
+        }
+        .landing-input-wrapper {
+          width: 100%;
+          max-width: 600px;
+          padding: 0 20px;
+        }
+
+        /* ── Chat ── */
+        .chat-viewport {
+          flex: 1;
+          overflow-y: auto;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding-top: 20px;
+        }
+        .chat-content {
+          width: 100%;
+          max-width: 760px;
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+          padding: 40px 20px 180px 20px;
+        }
         .msg-row { display: flex; gap: 12px; width: 100%; }
-        .u-row { justify-content: flex-end; }
-        .a-row { justify-content: flex-start; }
-        .u-bubble { background: #667eea; color: white; padding: 14px 20px; border-radius: 22px 6px 22px 22px; max-width: 75%; font-size: 16px; box-shadow: 0 4px 15px rgba(102,126,234,0.3); }
-        .a-bubble { background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); padding: 16px 20px; border-radius: 6px 22px 22px 22px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); color: #1f2937; }
-        .input-area-fixed { position: absolute; bottom: 0; width: 100%; background: linear-gradient(transparent, #f5f7fa 50%); padding: 20px; display: flex; justify-content: center; }
-        .search-wrapper { width: 100%; max-width: 720px; }
-        .logo { font-size: 3.5rem; font-weight: 900; color: #1f2937; margin-bottom: 30px; }
-        .disclaimer { font-size: 11px; color: #6b7280; text-align: center; margin-top: 10px; }
+        .u-row   { justify-content: flex-end; }
+        .a-row   { justify-content: flex-start; }
+
+        /* User bubble — purple from screenshot */
+        .u-bubble {
+          background: #5b52e8;
+          color: white;
+          padding: 12px 20px;
+          border-radius: 22px 6px 22px 22px;
+          max-width: 72%;
+          font-size: 15px;
+          box-shadow: 0 3px 12px rgba(91,82,232,0.25);
+        }
+
+        /* AI bubble — white card */
+        .a-bubble {
+          background: #ffffff;
+          padding: 14px 18px;
+          border-radius: 6px 22px 22px 22px;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+          color: #1f2937;
+          border: 0.5px solid #e5e7eb;
+        }
+
+        /* Fixed input */
+        .input-area-fixed {
+          position: absolute;
+          bottom: 0;
+          width: 100%;
+          background: linear-gradient(transparent, #f8f7f4 55%);
+          padding: 20px;
+          display: flex;
+          justify-content: center;
+        }
+        .search-wrapper { width: 100%; max-width: 700px; }
+        .disclaimer { font-size: 11px; color: #9ca3af; text-align: center; margin-top: 8px; }
+
+        /* Misc */
         .msg-img { max-width: 100%; border-radius: 10px; margin-bottom: 8px; }
-        .dots span { width: 6px; height: 6px; background: #6b7280; border-radius: 50%; display: inline-block; animation: bounce 1.4s infinite; margin-right: 3px; }
+        .ai-av {
+          width: 30px; height: 30px;
+          background: white;
+          border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+          flex-shrink: 0;
+          font-size: 14px;
+        }
+        .action-buttons {
+          display: flex; gap: 8px;
+          margin-top: 10px; padding-top: 10px;
+          border-top: 1px solid #f3f4f6;
+        }
+        .action-btn {
+          background: #f3f4f6;
+          border: none; border-radius: 6px;
+          padding: 5px 10px; cursor: pointer;
+          display: flex; align-items: center; gap: 4px;
+          font-size: 13px; color: #667eea;
+          transition: all 0.2s;
+        }
+        .action-btn:hover { background: #ede9fe; transform: translateY(-1px); }
+        .dots span {
+          width: 6px; height: 6px; background: #9ca3af;
+          border-radius: 50%; display: inline-block;
+          animation: bounce 1.4s infinite; margin-right: 3px;
+        }
         .dots span:nth-child(2) { animation-delay: 0.2s; }
         .dots span:nth-child(3) { animation-delay: 0.4s; }
-        .ai-av { width: 32px; height: 32px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); flex-shrink: 0; }
-        .action-buttons { display: flex; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(0,0,0,0.08); }
-        .action-btn { background: rgba(102,126,234,0.1); border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; gap: 4px; font-size: 14px; color: #667eea; transition: all 0.2s; }
-        .action-btn:hover { background: rgba(102,126,234,0.2); transform: translateY(-1px); }
-        @keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+        @keyframes bounce {
+          0%,100% { transform: translateY(0); }
+          50%      { transform: translateY(-5px); }
+        }
+
+        @media (max-width: 768px) {
+          .main { margin-left: ${sidebarOpen ? "260px" : "0"}; }
+          .chat-content { padding: 20px 12px 160px 12px; }
+        }
       `}</style>
     </div>
   );
