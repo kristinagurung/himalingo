@@ -36,7 +36,17 @@
     { "english": "7", "transliteration": "Din" },
     { "english": "8", "transliteration": "Gay" },
     { "english": "9", "transliteration": "Ghu" },
-  
+    { "english": "10", "transliteration": "Chu" },
+    { "english": "11", "transliteration": "Chuk Chi" },
+    { "english": "12", "transliteration": "Chuk Ngi" },
+    { "english": "13", "transliteration": "Choo Soom" },
+    { "english": "14", "transliteration": "Chuk Jye" },
+    { "english": "15", "transliteration": "Cheng Nga" },
+    { "english": "16", "transliteration": "Choo Rup" },
+    { "english": "17", "transliteration": "Chop Din" },
+    { "english": "18", "transliteration": "Chop Gyay" },
+    { "english": "19", "transliteration": "Choo Gu" }
+    
   ],
 
   "common_greetings": [
