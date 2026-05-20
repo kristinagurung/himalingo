@@ -158,3 +158,8 @@ env\ local
 __pycache__/
 venv/
 .venv/
+
+vitest
+.vitest/config.js
+.vitest/coverage/
+.setupTests.js
