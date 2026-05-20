@@ -15,7 +15,7 @@ router.get("/all-data", async (req, res) => {
     }
 });
 
-// 2. Sync JSON - Allows ALL data from ALL files
+// 2. Sync JSON - Normalizes data to avoid 'undefined'
 router.post("/sync-json", async (req, res) => {
     try {
         const dataPath = path.join(process.cwd(), 'data');
@@ -29,19 +29,14 @@ router.post("/sync-json", async (req, res) => {
                 const items = Array.isArray(content) ? content : [content];
 
                 items.forEach(item => {
+                    // Normalize keys so frontend always sees 'english' and 'transliteration'
                     const eng = (item.english || item.English || item.text || item.question || "").trim();
                     const bhu = (
                         item.transliteration_bhutia || 
                         item.transliteration || 
                         item.bhutia || 
                         item.Bhutia || 
-                        item.formal || 
-                        item.informal || 
-                        item.question ||
-                        item.answer ||
-                        item.heading ||
-                        item.content ||
-                             ""
+                        item.answer || ""
                     ).trim();
 
                     if (eng && bhu) {
@@ -57,15 +52,14 @@ router.post("/sync-json", async (req, res) => {
 
         if (allData.length > 0) {
             await Translation.deleteMany({}); 
-            // ordered: false skips items that cause errors instead of stopping
             await Translation.insertMany(allData, { ordered: false }); 
-            return res.json({ success: true, message: `Synced ${allData.length} items successfully!` });
+            return res.json({ success: true, message: `Synced ${allData.length} items!` });
         }
-        res.json({ success: false, message: "No translations found." });
+        res.json({ success: false, message: "No data found." });
     } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
-// 3. Toggle Status (Checkbox)
+// 3. Toggle Status - Fixes the 404 Error
 router.post("/toggle-status/:id", async (req, res) => {
     try {
         const item = await Translation.findById(req.params.id);
@@ -74,8 +68,10 @@ router.post("/toggle-status/:id", async (req, res) => {
             await item.save();
             return res.json({ success: true, isChecked: item.isChecked });
         }
-        res.status(404).json({ success: false });
-    } catch (err) { res.status(500).json({ success: false }); }
+        res.status(404).json({ success: false, message: "Item not found" });
+    } catch (err) { 
+        res.status(500).json({ success: false, message: err.message }); 
+    }
 });
 
 export default router;
