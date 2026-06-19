@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'backend/**' # Only trigger when files in the backend folder change
+      - 'backend/**'
 
 env:
   REGISTRY: ghcr.io
@@ -27,7 +27,7 @@ jobs:
       - name: Build and upload backend container
         uses: docker/build-push-action@v5
         with:
-          context: ./backend  # Points directly to your backend folder
+          context: ./backend
           file: ./backend/Dockerfile
           push: true
           tags: ghcr.io/${{ github.repository }}-backend:latest
