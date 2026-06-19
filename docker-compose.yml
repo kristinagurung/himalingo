@@ -1,0 +1,24 @@
+services:
+  backend:
+    build: ./backend
+    container_name: mern-backend-dev
+    ports:
+      - "5000:5000"
+    volumes:
+      # Live syncs your backend code changes instantly
+      - ./backend:/usr/src/app
+      - /usr/src/app/node_modules
+    # This forces MongoDB to start first inside the container, then runs your live code tracking
+    command: sh -c "mongod --fork --logpath /var/log/mongodb.log --dbpath /data/db && npm install && npx nodemon server.js"
+
+  frontend:
+    build: ./frontend
+    container_name: mern-frontend-dev
+    ports:
+      - "3000:3000"
+    volumes:
+      # Live syncs your frontend code changes instantly
+      - ./frontend:/app
+    command: sh -c "cd /app && npm install && npm run dev"
+    depends_on:
+      - backend
