@@ -29,7 +29,6 @@ router.post("/sync-json", async (req, res) => {
                 const items = Array.isArray(content) ? content : [content];
 
                 items.forEach(item => {
-                    // Normalize keys so frontend always sees 'english' and 'transliteration'
                     const eng = (item.english || item.English || item.text || item.question || "").trim();
                     const bhu = (
                         item.transliteration_bhutia || 
@@ -59,7 +58,7 @@ router.post("/sync-json", async (req, res) => {
     } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
-// 3. Toggle Status - Fixes the 404 Error
+// 3. Toggle Status 
 router.post("/toggle-status/:id", async (req, res) => {
     try {
         const item = await Translation.findById(req.params.id);
@@ -71,6 +70,19 @@ router.post("/toggle-status/:id", async (req, res) => {
         res.status(404).json({ success: false, message: "Item not found" });
     } catch (err) { 
         res.status(500).json({ success: false, message: err.message }); 
+    }
+});
+
+// 4. NEW: Delete Item Route
+router.delete("/delete/:id", async (req, res) => {
+    try {
+        const deletedItem = await Translation.findByIdAndDelete(req.params.id);
+        if (deletedItem) {
+            return res.json({ success: true, message: "Item deleted successfully" });
+        }
+        res.status(404).json({ success: false, message: "Item not found" });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
     }
 });
 
