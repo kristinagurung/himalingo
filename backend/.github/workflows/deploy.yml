@@ -1,9 +1,11 @@
-name: Automatic Deploy
+name: Backend Only Deploy
 
 on:
   push:
     branches:
       - main
+    paths:
+      - 'backend/**' # Only trigger when files in the backend folder change
 
 env:
   REGISTRY: ghcr.io
@@ -22,12 +24,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_PAT }}
 
-      - name: Build and upload container image
+      - name: Build and upload backend container
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./backend  # Points directly to your backend folder
+          file: ./backend/Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository }}:latest
+          tags: ghcr.io/${{ github.repository }}-backend:latest
 
   deploy:
     runs-on: ubuntu-latest
@@ -41,11 +44,11 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            docker pull ghcr.io/${{ github.repository }}:latest
-            docker stop himalingo-app || true
-            docker rm himalingo-app || true
+            docker pull ghcr.io/${{ github.repository }}-backend:latest
+            docker stop himalingo-backend || true
+            docker rm himalingo-backend || true
             docker run -d \
-              --name himalingo-app \
+              --name himalingo-backend \
               --restart always \
               -p 5000:5000 \
-              ghcr.io/${{ github.repository }}:latest
+              ghcr.io/${{ github.repository }}-backend:latest
