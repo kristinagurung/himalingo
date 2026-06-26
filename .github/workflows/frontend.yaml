@@ -1,0 +1,50 @@
+build-and-push-frontend:
+    runs-on: ubuntu-24.04-arm
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.image.outputs.image }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Lowercase image name
+        id: image
+        run: echo "image=${REGISTRY}/${IMAGE_NAME,,}-frontend" >> "$GITHUB_OUTPUT"
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          platforms: linux/arm64
+          tags: ${{ steps.image.outputs.image }}:latest
+
+    deploy-frontend:
+    needs: build-and-push-frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy Frontend
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            IMAGE="${{ needs.build-and-push-frontend.outputs.image }}:latest"
+            docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GHCR_PAT }}
+            docker pull "$IMAGE"
+            docker stop himalingo-frontend || true
+            docker rm himalingo-frontend || true
+            docker run -d \
+              --name himalingo-frontend \
+              --network proxy \
+              --restart unless-stopped \
+              -p 80:3000 \
+              "$IMAGE"
